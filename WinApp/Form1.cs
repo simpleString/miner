@@ -21,6 +21,7 @@ namespace WinApp
         private int DistanceButtonWidht;
         private int DistanceButtonHeight;
         private bool FlagEndGame = false;
+        private bool StartGame = true; // flag start game
         ButtonExtended[,] AllButtons;
 
         public Form1()
@@ -181,7 +182,7 @@ namespace WinApp
             if (CheckBut(senderB) == false) Algoritm(senderB.xb,senderB.yb, int.Parse(senderB.Text),e); // самая главная функция по красивой игре!!!!
             if (senderB.BackColor != Color.Yellow)
             {
-                if (senderB.Isbomb == true && FlagEndGame != true)
+                if (senderB.Isbomb == true && FlagEndGame != true && StartGame != true)
                 {
                     FlagEndGame = true;
                     for (int y = 0; y < CountButton; y++)
@@ -218,8 +219,15 @@ namespace WinApp
                 }
                 else if (senderB.Isbomb == false)
                 {
+                    StartGame = false;
                     senderB.Text = CheckDigit(senderB.xb, senderB.yb).ToString();
                     if (CheckDigit(senderB.xb, senderB.yb) == 0) senderB.BackColor = Color.White;
+                }
+                else if (senderB.Isbomb == true && FlagEndGame != true && StartGame == true)
+                {
+                    senderB.Isbomb = false;
+                    StartGame = false;
+                    ClickEvent(sender, e);
                 }
             }
         }
