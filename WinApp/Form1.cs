@@ -14,32 +14,48 @@ namespace WinApp
     public partial class Form1 : Form
     {
 
-        public int CountButton = 30; // нужно сделать чтобы это вводил игрок
+        public int CountButton = 30; // how many will be bombs
         private int BoombsSet = 0; // текущее количество бомб!!!
         private int widht;
         private int height;
         private int DistanceButtonWidht;
         private int DistanceButtonHeight;
-        private bool FlagEndGame = false;
+        private bool FlagEndGame = false; // flag end game
         private bool StartGame = true; // flag start game
         ButtonExtended[,] AllButtons;
 
+        /// <summary>
+        /// Init buttons size and init form1
+        /// </summary>
         public Form1()
         {
-            Data.BoomCount = Properties.Settings.Default.Booms;
+            Data.BoomCount = Properties.Settings.Default.Booms; // 
             CountButton = Properties.Settings.Default.Count;
-            //CountButton = 10;
             widht = this.ClientSize.Width * 2;
             height = this.ClientSize.Height * 2;
-            //widht = this.Size.Width * 2-11;
-            //height = this.Size.Height * 2-73;
-            //MessageBox.Show(this.ClientSize.ToString());
             DistanceButtonWidht = widht / CountButton;
             DistanceButtonHeight = height / CountButton;
             InitializeComponent();
             
         }
 
+        /// <summary>
+        /// Extended for Button
+        /// </summary>
+        class ButtonExtended : Button
+        {
+            public int yb;
+            public int xb;
+            public bool Isbomb;
+            public bool tempstate;
+
+        }
+
+        /// <summary>
+        /// Add button to form and add them to array. Also to some buttons add bombs.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Form1_Load(object sender, EventArgs e)
         {
             AllButtons = new ButtonExtended[widht, height];
@@ -48,19 +64,19 @@ namespace WinApp
             {
                 for (int x = 0; x < CountButton; x++)
                 {
-                    ButtonExtended button = new ButtonExtended();
-                    
-                    button.TabStop = false;
-                    if (rand.Next(1, 100) < 20)
+                    ButtonExtended button = new ButtonExtended
                     {
-                        
+                        TabStop = false
+                    };
+                    if (rand.Next(1, 100) < 20) // 20% that button will with bomb
+                    {
                         BoombsSet++;
                         button.Isbomb = true;
                     }
-                    button.Location = new Point(10 + x * DistanceButtonWidht, 37 + y * DistanceButtonHeight); // поле постоянно смещенно на 15 !!!!
+                    button.Location = new Point(10 + x * DistanceButtonWidht, 37 + y * DistanceButtonHeight); // it's a constant to place the button(this's not correct, but without it looks ugly)
                     button.Size = new Size(DistanceButtonWidht, DistanceButtonHeight);
                     Controls.Add(button);
-                    button.MouseDown += new MouseEventHandler(this.Button_RightClick);
+                    button.MouseDown += new MouseEventHandler(this.Button_RightClick); // subscribe to event(right and left click)
                     button.Click += new EventHandler(ClickEvent);
                     AllButtons[x, y] = button;
                     button.xb = x;
@@ -69,13 +85,17 @@ namespace WinApp
             }
 
         }
+
+        /// <summary>
+        /// Event if have clicked right button.(change color (it's flag))
+        /// </summary>  
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void Button_RightClick(object sender, MouseEventArgs e)
         {
             ButtonExtended button = (ButtonExtended)sender;
             if (e.Button == MouseButtons.Right && CheckBut(button))
             {
-               
-                
                 if (button.BackColor == Color.Yellow)
                 {
                     button.BackColor = default(Color);
@@ -83,16 +103,19 @@ namespace WinApp
                 }
                 else
                 {
-                    //MessageBox.Show((button.BackColor.ToString()));
                     button.Text = "L";
-                    button.BackColor = Color.Yellow;// Нужно подумать над проверкой флашкоф!!!!!!!!
-                    //MessageBox.Show("Left tButton");
+                    button.BackColor = Color.Yellow;
                 }
                 
                
             }
         }
-
+        /// <summary>
+        /// count bombs around button
+        /// </summary>
+        /// <param name="xb"></param>
+        /// <param name="yb"></param>
+        /// <returns></returns>
         int CheckDigit(int xb,int yb)
         {
             int CountBomb = 0;
@@ -108,7 +131,11 @@ namespace WinApp
             }
             return CountBomb;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="button"></param>
+        /// <returns>return false if it's not number</returns>
         bool CheckBut(ButtonExtended button)
         {
             for(int j = 0;j<10;j++)
@@ -118,7 +145,7 @@ namespace WinApp
             return true;
         }
 
-        void Algoritm(int xb,int yb,int digit, EventArgs e)
+        void Algorithm(int xb,int yb,int digit, EventArgs e)
         {
             int digitTemp = 0;
             for (int y = yb - 1; y <= yb + 1; y++)
@@ -137,7 +164,6 @@ namespace WinApp
                     {
                         if (0 <= x && x < CountButton && 0 <= y && y < CountButton)
                         {
-                            //if (x == xb && y == yb || AllButtons[x, y].tempstate==true) continue;
                             if (AllButtons[x, y].tempstate == true) continue;
                             ClickEvent(AllButtons[x, y], e);
                         }
@@ -146,26 +172,35 @@ namespace WinApp
                 }
             }
         }
+        /// <summary>
+        /// Check all button in array.
+        /// </summary>
+        /// <returns></returns>
         bool CheckWin()
         {
             for (int y = 0; y < CountButton; y++)
             {
                 for (int x = 0; x < CountButton; x++)
                 {
-                    if (AllButtons[x, y].Isbomb && AllButtons[x, y].BackColor == Color.Yellow) continue;
-                    if (AllButtons[x, y].Isbomb == false && CheckBut(AllButtons[x, y]) == false) continue;
+                    if (AllButtons[x, y].Isbomb && AllButtons[x, y].BackColor == Color.Yellow) continue;// if all buttons with bombs with flags
+                    if (AllButtons[x, y].Isbomb == false && CheckBut(AllButtons[x, y]) == false) continue;// and other buttons without bombs open
                     return false;
                 }
             }
             return true;
         }
+        /// <summary>
+        /// if we click left button
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void ClickEvent(object sender, EventArgs e)
         {
-            if (CheckWin())
+            if (CheckWin()) //if we win show dialog
             {
                 DialogResult result = MessageBox.Show(
-                        "Вы выйграли",
-                        "Сообщение",
+                        "you win",
+                        "Window",
                         MessageBoxButtons.RetryCancel
                         );
                 if (DialogResult.Retry == result)
@@ -178,11 +213,15 @@ namespace WinApp
                     this.Close();
                 }
             }
-            var senderB = (ButtonExtended)sender;
-            if (CheckBut(senderB) == false) Algoritm(senderB.xb,senderB.yb, int.Parse(senderB.Text),e); // самая главная функция по красивой игре!!!!
+
+            var senderB = (ButtonExtended)sender;// temp var
+
+            Attention
+            //if (CheckBut(senderB) == false) Algorithm(senderB.xb,senderB.yb, int.Parse(senderB.Text),e); // This's an algorithm when you press a button with numbers already opened. (It's not necessary)
+            Attention
             if (senderB.BackColor != Color.Yellow)
             {
-                if (senderB.Isbomb == true && FlagEndGame != true && StartGame != true)
+                if (senderB.Isbomb == true && FlagEndGame != true && StartGame != true) // if't a bomb, and not the first click(if the buttons didn't open earlier)
                 {
                     FlagEndGame = true;
                     for (int y = 0; y < CountButton; y++)
@@ -203,8 +242,8 @@ namespace WinApp
                     }
 
                     DialogResult result = MessageBox.Show(
-                        "Вы проиграли",
-                        "Сообщение",
+                        "you lost",
+                        "Message",
                         MessageBoxButtons.RetryCancel
                         );
                     if (DialogResult.Retry == result)
@@ -217,13 +256,13 @@ namespace WinApp
 
 
                 }
-                else if (senderB.Isbomb == false)
+                else if (senderB.Isbomb == false) // if it's not bomb then open it
                 {
                     StartGame = false;
                     senderB.Text = CheckDigit(senderB.xb, senderB.yb).ToString();
                     if (CheckDigit(senderB.xb, senderB.yb) == 0) senderB.BackColor = Color.White;
                 }
-                else if (senderB.Isbomb == true && FlagEndGame != true && StartGame == true)
+                else if (senderB.Isbomb == true && FlagEndGame != true && StartGame == true) // if it's first click then change button on common button(without bomb)
                 {
                     senderB.Isbomb = false;
                     StartGame = false;
@@ -252,10 +291,6 @@ namespace WinApp
             Properties.Settings.Default.Save();
             Application.Exit();
             System.Diagnostics.Process.Start(Application.ExecutablePath);
-            //Application.Run(new Form1());
-
-            //this.Show();
-            //this.Visible = true;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -266,22 +301,8 @@ namespace WinApp
         private void оПриложенииToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Form3 form3 = new Form3();
-            //this.Hide();
-            //Register form closed event
-            //form2.FormClosed += new FormClosedEventHandler(form2_FormClosed);
-
-           
-
             form3.ShowDialog();
         }
     }
-
-    class ButtonExtended : Button
-    {
-        public int yb;
-        public int xb;
-        public bool Isbomb;
-        public bool tempstate;
-
-    }
+    
 }
